@@ -1,0 +1,444 @@
+body {
+    font-family: sans-serif;
+    margin: 16px;
+}
+
+#calendar {
+    max-width: 1000px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 0;
+    /* カレンダーは下 */
+}
+
+.fc {
+    position: relative;
+    z-index: 0;
+    /* FullCalendarも下 */
+}
+
+.topbar {
+    max-width: 1000px;
+    margin: 0 auto 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.btn {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    background: #fff;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.btn.primary {
+    border-color: #666;
+    font-weight: 700;
+}
+
+.btn.danger {
+    border-color: #cc3333;
+    color: #cc3333;
+    font-weight: 700;
+}
+
+/* ===== モーダル ===== */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 100000;
+    /* 最前面 */
+    isolation: isolate;
+    /* 重なり安定 */
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-card {
+    max-width: 720px;
+    width: min(720px, 96vw);
+    background: #fff;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    position: relative;
+    z-index: 100001;
+    /* モーダルの中身も最前面 */
+}
+
+/* モーダル中は裏スクロール禁止 */
+body.modal-open {
+    overflow: hidden;
+}
+
+/* ===== フォーム ===== */
+.modal-card label {
+    display: block;
+    margin: 8px 0;
+}
+
+.modal-card input,
+.modal-card textarea,
+.modal-card select {
+    width: 100%;
+    margin-top: 6px;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+}
+
+.row {
+    display: flex;
+    gap: 16px;
+}
+
+.row>label {
+    flex: 1;
+}
+
+#f_title {
+    height: 42px;
+}
+
+#f_xurl,
+#f_tags {
+    height: 40px;
+}
+
+#f_memo {
+    min-height: 120px;
+    max-height: 220px;
+    resize: vertical;
+}
+
+.actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.actions .right {
+    display: flex;
+    gap: 10px;
+}
+
+.muted {
+    color: #666;
+    font-size: 0.9em;
+}
+
+/* ===== タグチップ ===== */
+.tag-palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.tag-chip {
+    border: 1px solid #ddd;
+    background: #fff;
+    padding: 6px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 13px;
+}
+
+.tag-chip:hover {
+    border-color: #999;
+}
+
+.tag-chip.active {
+    border-color: #333;
+    font-weight: 700;
+}
+
+.modal-card {
+    max-height: 90vh;
+    overflow: auto;
+}
+
+.day-list {
+    margin-top: 12px;
+    display: grid;
+    gap: 10px;
+}
+
+.day-item {
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 10px;
+    background: #fff;
+}
+
+.day-item-top {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    justify-content: space-between;
+}
+
+.day-time {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.day-title {
+    font-weight: 700;
+    margin-right: auto;
+}
+
+.day-tags {
+    color: #555;
+    font-size: 0.9em;
+    margin-top: 6px;
+}
+
+.day-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+#calendar {
+    max-width: 1200px;
+    /* 1000 → 1200 */
+    margin: 0 auto;
+}
+
+/* 日のマスを縦に大きくして、イベントが見えるように */
+.fc .fc-daygrid-day-frame {
+    min-height: 140px;
+}
+
+/* イベントを折り返す（省略しない） */
+.fc .fc-daygrid-event,
+.fc .fc-event-title {
+    white-space: normal;
+}
+
+/* イベントの中身に少し余白 */
+.fc .fc-daygrid-event {
+    padding: 2px 4px;
+}
+
+.nth-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    background: #fafafa;
+}
+
+.nth-label {
+    font-weight: 700;
+    margin-right: 4px;
+}
+
+.nth-box label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+}
+
+/* 月表示：行が伸びないように固定＆セル内スクロール */
+.fc .fc-daygrid-day-frame {
+    height: 140px;
+    /* 好みで 120〜180 くらい */
+    overflow-y: auto;
+    /* セル内スクロール */
+}
+
+/* イベントは折り返して表示（省略しにくく） */
+.fc .fc-daygrid-event .fc-event-title {
+    white-space: normal;
+}
+
+/* スクロールバーが邪魔なら少し細く（Chrome系） */
+.fc .fc-daygrid-day-frame::-webkit-scrollbar {
+    width: 8px;
+}
+
+.fc .fc-daygrid-day-frame::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 10px;
+}
+
+
+
+
+
+body {
+    background: radial-gradient(circle at top, #141834, #0b0e1a);
+    color: #5589f1;
+    font-family: "Inter", "Noto Sans JP", system-ui, sans-serif;
+}
+
+#calendar {
+    background: rgba(20, 24, 52, 0.6);
+    border-radius: 18px;
+    padding: 12px;
+    box-shadow:
+        0 0 0 1px rgba(120, 130, 255, 0.15),
+        0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+.fc .fc-daygrid-day-frame {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+}
+
+.fc .fc-daygrid-event {
+    background: linear-gradient(135deg, rgba(0, 234, 255, 0.18), rgba(167, 139, 250, 0.18));
+    border: 1px solid rgba(0, 234, 255, 0.35);
+    border-radius: 10px;
+    padding: 4px 6px;
+    box-shadow: 0 0 12px rgba(0, 234, 255, 0.25);
+}
+
+.fc .fc-daygrid-event:hover {
+    box-shadow: 0 0 18px rgba(167, 139, 250, 0.6);
+    transform: translateY(-1px);
+}
+
+.event-tag {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 999px;
+    font-size: 11px;
+    margin-right: 4px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.modal-card {
+    background: linear-gradient(180deg,
+            rgba(20, 24, 52, 0.95),
+            rgba(10, 12, 24, 0.95));
+    border: 1px solid rgba(120, 130, 255, 0.3);
+    backdrop-filter: blur(10px);
+    color: #5589f1;
+}
+
+.modal-card h2 {
+    letter-spacing: 0.05em;
+    text-shadow: 0 0 12px rgba(0, 234, 255, 0.4);
+}
+
+/* 月表示のセル全体をクリック可能にする */
+.fc-daygrid-day,
+.fc-daygrid-day-frame {
+    pointer-events: auto;
+}
+
+/* セル全体をクリック判定にする */
+.fc-daygrid-day-frame {
+    min-height: 100%;
+}
+
+/* 日付セルの背景全体をクリック対象に */
+.fc-daygrid-day-events,
+.fc-daygrid-day-top,
+.fc-daygrid-day-bottom {
+    pointer-events: none;
+}
+
+
+/* 月グリッドの1行（1週）を縦長にする */
+.fc-daygrid-body tr {
+    height: 140px;
+    /* ← 好みで 120〜180px */
+}
+
+/* 各セルをフル高さで使う */
+.fc-daygrid-day-frame {
+    height: 100%;
+    min-height: 140px;
+    /* ↑と揃える */
+    display: flex;
+    flex-direction: column;
+}
+
+/* 日付（1日、2日…）のエリア */
+.fc-daygrid-day-top {
+    flex: 0 0 auto;
+}
+
+/* イベント表示エリアを縦に広く */
+.fc-daygrid-day-events {
+    flex: 1 1 auto;
+}
+
+#calendar {
+    width: 95vw;
+    /* 画面幅の95%使う */
+    max-width: 1600px;
+    /* 大画面でも暴れすぎない上限（好み） */
+    margin: 0 auto;
+    /* 中央寄せ */
+}
+
+.fc-daygrid-body tr {
+    height: 200px;
+    /* ← 140 → 180 など */
+}
+
+.fc-daygrid-day-frame {
+    min-height: 300px;
+}
+
+/* 月表示の「中身スクロール箱」で切られないようにする */
+.fc .fc-scroller-harness,
+.fc .fc-scroller {
+    height: auto !important;
+    overflow: visible !important;
+}
+
+/* 念のため：日セルの中身も下まで表示 */
+.fc .fc-daygrid-day-frame {
+    overflow: visible !important;
+}
+
+/* ===== FullCalendar 月表示：下が切れないようにする ===== */
+
+/* スクロール用ラッパーを殺す */
+.fc .fc-scroller-harness,
+.fc .fc-scroller {
+    height: auto !important;
+    overflow: visible !important;
+}
+
+/* ビュー全体を自動高さに */
+.fc .fc-view-harness {
+    height: auto !important;
+}
+
+/* 日セルの中身を下まで表示 */
+.fc .fc-daygrid-day-frame {
+    overflow: visible !important;
+    height: 100%;
+}
+
+/* セル自体を縦長に */
+.fc-daygrid-body tr {
+    height: 150px;
+    /* 好きな高さに調整OK（120〜180くらい） */
+}

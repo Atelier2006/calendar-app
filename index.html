@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>いつめん用カレンダー</title>
+
+    <!-- FullCalendar -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales-all.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/rrule@2.7.2/dist/es5/rrule.min.js"></script>
+
+
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header class="topbar">
+        <h1>VRC個人用イベントカレンダー</h1>
+        <button id="openSettings" class="btn">⚙ 設定</button>
+    </header>
+
+    <div id="calendar"></div>
+
+    <!-- 日別予定一覧モーダル -->
+    <div id="dayModal" class="modal hidden">
+        <div class="modal-card">
+            <h2 id="dayTitle">予定一覧</h2>
+
+            <div class="actions" style="margin-top: 8px;">
+                <button id="dayClose" class="btn">閉じる</button>
+                <button id="dayAdd" class="btn primary">＋この日に追加</button>
+            </div>
+
+            <div id="dayList" class="day-list"></div>
+        </div>
+    </div>
+
+
+    <!-- 予定編集モーダル -->
+    <div id="eventModal" class="modal hidden">
+        <div class="modal-card">
+            <h2 id="modalTitle">予定</h2>
+
+            <label>タイトル
+                <input id="f_title" type="text" />
+            </label>
+
+            <div class="row">
+                <label>開始
+                    <input id="f_start" type="datetime-local" step="300">
+                </label>
+                <label>終了（任意）
+                    <input id="f_end" type="datetime-local" step="300">
+                </label>
+            </div>
+
+            <label>
+                繰り返し
+                <select id="f_repeatType">
+                    <option value="none">なし</option>
+                    <option value="weekly">毎週</option>
+                    <option value="bimonthly">隔月</option>
+                    <option value="nthWeekdayMonthly">毎月 第◯曜日</option>
+                </select>
+            </label>
+
+            <div class="row" id="repeatOptionsRow" style="display:none;">
+                <div id="nthBox" class="nth-box">
+                    <span class="nth-label">第</span>
+                    <label><input type="checkbox" class="nth" value="1">1</label>
+                    <label><input type="checkbox" class="nth" value="2">2</label>
+                    <label><input type="checkbox" class="nth" value="3">3</label>
+                    <label><input type="checkbox" class="nth" value="4">4</label>
+                    <label><input type="checkbox" class="nth" value="-1">最終</label>
+                </div>
+            </div>
+
+
+            <label>XのURL（任意）
+                <input id="f_xurl" type="url" placeholder="https://x.com/..." />
+            </label>
+
+            <label>タグ（カンマ区切り）
+                <input id="f_tags" type="text" placeholder="ライブ,告知" />
+            </label>
+
+            <div class="tag-palette" id="tagPalette"></div>
+
+            <label>メモ（任意）
+                <textarea id="f_memo" rows="4"></textarea>
+            </label>
+
+            <p class="muted">追加者: <span id="f_creator"></span></p>
+
+            <div class="actions">
+                <button id="btnClose" class="btn">閉じる</button>
+                <div class="right">
+                    <button id="btnDelete" class="btn danger">削除</button>
+                    <button id="btnSave" class="btn primary">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 設定モーダル -->
+    <div id="settingsModal" class="modal hidden">
+        <div class="modal-card">
+            <h2>設定</h2>
+
+            <label>あなたの表示名（追加者として保存されます）
+                <input id="s_name" type="text" placeholder="例）アスユイ" />
+            </label>
+
+            <div class="row">
+                <label>週の開始
+                    <select id="s_weekStart">
+                        <option value="0">日曜始まり</option>
+                        <option value="1">月曜始まり</option>
+
+                    </select>
+                </label>
+
+                <label>初期表示
+                    <select id="s_initialView">
+                        <option value="dayGridMonth">月</option>
+                        <option value="timeGridWeek">週</option>
+                        <option value="timeGridDay">日</option>
+                        <option value="listWeek">リスト（週）</option>
+                    </select>
+                </label>
+            </div>
+
+            <label>タグ候補（カンマ区切り・任意）
+                <input id="s_tagPresets" type="text" placeholder="ライブ,告知,作業,集会" />
+            </label>
+
+            <div class="actions">
+                <button id="btnSettingsClose" class="btn">閉じる</button>
+                <button id="btnSettingsSave" class="btn primary">保存</button>
+            </div>
+
+            <p class="muted">
+                ※設定はこのブラウザに保存（localStorage）されます。<br>
+                みんな共通の設定にしたい場合は、あとでFirestore側に「settings」ドキュメントを作る方式に拡張できます。
+            </p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+
+</html>
