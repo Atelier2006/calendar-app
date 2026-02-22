@@ -68,6 +68,19 @@ function escapeHtml(s) {
 }
 /* ===== [02] end ===== */
 
+// ★タブを閉じるまで保持するフラグ
+window.alreadyAskedThisSession = function () {
+    return sessionStorage.getItem("asked_user_picker") === "1";
+};
+
+window.markAskedThisSession = function () {
+    sessionStorage.setItem("asked_user_picker", "1");
+};
+
+window.clearAskedThisSession = function () {
+    sessionStorage.removeItem("asked_user_picker");
+};
+
 
 /* =========================================================
    [03] 設定（localStorage：名前/週開始/初期ビュー/タグプリセット）
