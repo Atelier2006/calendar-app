@@ -442,3 +442,14 @@ body {
     height: 150px;
     /* 好きな高さに調整OK（120〜180くらい） */
 }
+
+.day-memo {
+    margin-top: 6px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .06);
+    white-space: pre-wrap;
+    /* 改行をそのまま表示 */
+    font-size: 12px;
+    line-height: 1.4;
+}
