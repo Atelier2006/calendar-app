@@ -106,27 +106,28 @@ function markAskedThisSession() {
 
 let currentUser = null;
 
-firebase.auth().onAuthStateChanged(async (user) => {
-    if (!user) {
-        await firebase.auth().signInAnonymously();
-        return;
-    }
-    currentUser = user;
-
-    // ★このタブ内で既に選択済みなら、ピッカーは出さずに購読だけ開始
-    if (alreadyAskedThisSession()) {
-        if (settings.name && settings.name !== "名無し") {
-            startEventsSubscription();
-        } else {
-            // 念のため：名前が無いのにフラグだけ立ってる場合はやり直し
-            sessionStorage.removeItem("asked_user_picker");
-            await loadAndShowUserPicker();
+window.addEventListener("DOMContentLoaded", () => {
+    firebase.auth().onAuthStateChanged(async (user) => {
+        if (!user) {
+            await firebase.auth().signInAnonymously();
+            return;
         }
-        return;
-    }
+        currentUser = user;
 
-    // ★初回だけピッカーを出す（選択後に購読開始）
-    await loadAndShowUserPicker();
+        // ★既に選択済みなら購読開始（選択画面は出さない）
+        if (alreadyAskedThisSession()) {
+            if (settings.name && settings.name !== "名無し") {
+                startEventsSubscription();
+            } else {
+                sessionStorage.removeItem("asked_user_picker");
+                await loadAndShowUserPicker();
+            }
+            return;
+        }
+
+        // ★初回だけピッカー（選択後に購読開始）
+        await loadAndShowUserPicker();
+    });
 });
 /* ===== [04] end ===== */
 
