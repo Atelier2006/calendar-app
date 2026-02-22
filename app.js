@@ -97,8 +97,14 @@ let settings = loadSettings();
 /* =========================================================
    [04] Auth（匿名ログイン）※ログイン後に購読開始
    ========================================================= */
+function alreadyAskedThisSession() {
+    return sessionStorage.getItem("asked_user_picker") === "1";
+}
+function markAskedThisSession() {
+    sessionStorage.setItem("asked_user_picker", "1");
+}
+
 let currentUser = null;
-let askedPickerThisPage = false; // ★ページ読み込みごとに1回だけ
 
 firebase.auth().onAuthStateChanged(async (user) => {
     if (!user) {
@@ -107,14 +113,19 @@ firebase.auth().onAuthStateChanged(async (user) => {
     }
     currentUser = user;
 
-    // ★このページ内で2回目以降は、ピッカー出さずに購読開始
-    if (askedPickerThisPage) {
-        if (settings.name && settings.name !== "名無し") startEventsSubscription();
+    // ★このタブ内で既に選択済みなら、ピッカーは出さずに購読だけ開始
+    if (alreadyAskedThisSession()) {
+        if (settings.name && settings.name !== "名無し") {
+            startEventsSubscription();
+        } else {
+            // 念のため：名前が無いのにフラグだけ立ってる場合はやり直し
+            sessionStorage.removeItem("asked_user_picker");
+            await loadAndShowUserPicker();
+        }
         return;
     }
 
-    // ★ページ読み込み直後は必ずピッカー
-    askedPickerThisPage = true;
+    // ★初回だけピッカーを出す（選択後に購読開始）
     await loadAndShowUserPicker();
 });
 /* ===== [04] end ===== */
