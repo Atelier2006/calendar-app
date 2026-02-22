@@ -24,6 +24,37 @@
 </head>
 
 <body>
+
+    <!-- ユーザー名選択モーダル -->
+    <div id="userPickerModal" class="modal hidden">
+        <div class="modal-inner" style="max-width:520px;">
+            <h2 style="margin:0 0 10px;">ユーザー名を選択</h2>
+
+            <div class="muted" style="margin-bottom:10px;">
+                既存の名前を選ぶか、無ければ新しく登録してね（パスワード不要）
+            </div>
+
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
+                <input id="u_search" type="text" placeholder="検索（例：AsuYui）" style="flex:1;">
+                <button id="u_reload" class="btn">更新</button>
+            </div>
+
+            <div id="u_list" class="user-list"></div>
+
+            <hr style="opacity:.2; margin:14px 0;">
+
+            <div style="display:flex; gap:8px; align-items:center;">
+                <input id="u_new" type="text" placeholder="新しいユーザー名を登録" style="flex:1;">
+                <button id="u_add" class="btn primary">登録</button>
+            </div>
+
+            <div class="muted" style="margin-top:10px;">
+                ※同じ名前が既にある場合は登録できません
+            </div>
+        </div>
+    </div>
+
+
     <header class="topbar">
         <h1>VRC個人用イベントカレンダー</h1>
         <button id="openSettings" class="btn">⚙ 設定</button>

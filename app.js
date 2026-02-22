@@ -105,15 +105,16 @@ firebase.auth().onAuthStateChanged(async (user) => {
         return;
     }
     currentUser = user;
-
     console.log("Signed in:", user.uid);
 
+    // ★ ユーザー名が未決定なら選択画面へ（購読開始しない）
     if (!settings.name || settings.name === "名無し") {
-        settings.name = "user-" + user.uid.slice(0, 6);
-        saveSettings(settings);
+        await loadAndShowUserPicker();
+        return;
     }
 
-    startEventsSubscription(); // ★ログイン後に開始
+    // 決まっているなら開始
+    startEventsSubscription();
 });
 /* ===== [04] end ===== */
 
@@ -143,6 +144,14 @@ const dayTitle = qs("dayTitle");
 const dayList = qs("dayList");
 const dayClose = qs("dayClose");
 const dayAdd = qs("dayAdd");
+
+// ===== ユーザー名選択モーダル DOM =====
+const userPickerModal = qs("userPickerModal");
+const u_list = qs("u_list");
+const u_new = qs("u_new");
+const u_add = qs("u_add");
+const u_search = qs("u_search");
+const u_reload = qs("u_reload");
 
 let activeDayDate = null;
 
@@ -481,6 +490,12 @@ function nthWeekdayDateOfMonth(baseDate, nth, weekdayIndex) {
    [11] 保存処理（新規/更新/例外：overrides / rrule生成）
    ========================================================= */
 btnSave.addEventListener("click", async () => {
+
+    if (!settings.name || settings.name === "名無し") {
+        alert("ユーザー名を選択してください");
+        await loadAndShowUserPicker();
+        return;
+    }
     const title = f_title.value.trim();
     if (!title) return alert("タイトル必須");
 
@@ -611,6 +626,125 @@ btnSettingsSave.addEventListener("click", () => {
     location.reload();
 });
 /* ===== [13] end ===== */
+
+
+/* =========================================================
+   [13.5] ユーザー名選択（Firestore users）
+   ========================================================= */
+function normalizeName(name) {
+    return String(name || "").trim().replace(/\s+/g, " ");
+}
+function nameDocId(name) {
+    return normalizeName(name).toLowerCase();
+}
+
+async function fetchUserNames() {
+    const snap = await db.collection("users").orderBy("createdAt", "desc").limit(200).get();
+    const arr = [];
+    snap.forEach(doc => {
+        const d = doc.data();
+        if (d?.displayName) arr.push(d.displayName);
+    });
+    return arr;
+}
+
+function openUserPicker() {
+    userPickerModal.classList.remove("hidden");
+    document.body.classList.add("modal-open");
+}
+function closeUserPicker() {
+    userPickerModal.classList.add("hidden");
+    document.body.classList.remove("modal-open");
+}
+
+function renderUserList(names, keyword = "") {
+    const kw = normalizeName(keyword).toLowerCase();
+    u_list.innerHTML = "";
+
+    const filtered = names
+        .map(n => normalizeName(n))
+        .filter(Boolean)
+        .filter(n => !kw || n.toLowerCase().includes(kw))
+        .sort((a, b) => a.localeCompare(b, "ja"));
+
+    if (filtered.length === 0) {
+        u_list.innerHTML = `<div class="muted">該当するユーザー名がありません。</div>`;
+        return;
+    }
+
+    filtered.forEach(n => {
+        const row = document.createElement("div");
+        row.className = "user-item";
+        row.innerHTML = `
+      <div class="name">${escapeHtml(n)}</div>
+      <button class="btn primary">この名前で入る</button>
+    `;
+        row.querySelector("button").addEventListener("click", () => {
+            settings.name = n;
+            saveSettings(settings);
+            closeUserPicker();
+            startEventsSubscription();
+        });
+        u_list.appendChild(row);
+    });
+}
+
+async function loadAndShowUserPicker() {
+    openUserPicker();
+    u_list.innerHTML = `<div class="muted">読み込み中...</div>`;
+
+    try {
+        const names = await fetchUserNames();
+        renderUserList(names, u_search?.value || "");
+    } catch (e) {
+        console.error(e);
+        u_list.innerHTML = `<div class="muted">ユーザー一覧の取得に失敗しました。</div>`;
+    }
+}
+
+async function registerUserName() {
+    const name = normalizeName(u_new.value);
+    if (!name) return alert("ユーザー名を入力してね");
+    if (name.length > 24) return alert("ユーザー名は24文字以内にしてね");
+
+    const id = nameDocId(name);
+    const ref = db.collection("users").doc(id);
+
+    try {
+        await db.runTransaction(async (tx) => {
+            const doc = await tx.get(ref);
+            if (doc.exists) throw new Error("DUP");
+            tx.set(ref, {
+                displayName: name,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        });
+
+        settings.name = name;
+        saveSettings(settings);
+        closeUserPicker();
+        startEventsSubscription();
+    } catch (e) {
+        if (String(e?.message).includes("DUP")) {
+            alert("その名前は既に使われています。別の名前にしてね");
+            return;
+        }
+        console.error(e);
+        alert("登録に失敗しました（コンソールを見てね）");
+    }
+}
+
+u_add?.addEventListener("click", registerUserName);
+u_reload?.addEventListener("click", loadAndShowUserPicker);
+u_search?.addEventListener("input", loadAndShowUserPicker);
+
+// 外側クリックで閉じない（必須選択にするため）
+userPickerModal?.addEventListener("click", (e) => {
+    if (e.target === userPickerModal) {
+        // closeUserPicker(); // ←閉じたいならコメント外す
+    }
+});
+/* ===== [13.5] end ===== */
 
 
 /* =========================================================
@@ -781,3 +915,6 @@ function startEventsSubscription() {
     });
 }
 /* ===== [16] end ===== */
+
+最初にユーザー名選択画面その中に自分の名前がない場合ユーザー名登録できるようにしたい
+パスワード等はいらない
