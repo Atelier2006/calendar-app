@@ -97,6 +97,13 @@ let settings = loadSettings();
 /* =========================================================
    [04] Auth（匿名ログイン）※ログイン後に購読開始
    ========================================================= */
+function alreadyAskedThisSession() {
+    return sessionStorage.getItem("asked_user_picker") === "1";
+}
+function markAskedThisSession() {
+    sessionStorage.setItem("asked_user_picker", "1");
+}
+
 let currentUser = null;
 
 firebase.auth().onAuthStateChanged(async (user) => {
@@ -105,16 +112,21 @@ firebase.auth().onAuthStateChanged(async (user) => {
         return;
     }
     currentUser = user;
-    console.log("Signed in:", user.uid);
 
-    // ★ ユーザー名が未決定なら選択画面へ（購読開始しない）
-    if (!settings.name || settings.name === "名無し") {
-        await loadAndShowUserPicker();
+    // ★このタブ内で既に選択済みなら、ピッカーは出さずに購読だけ開始
+    if (alreadyAskedThisSession()) {
+        if (settings.name && settings.name !== "名無し") {
+            startEventsSubscription();
+        } else {
+            // 念のため：名前が無いのにフラグだけ立ってる場合はやり直し
+            sessionStorage.removeItem("asked_user_picker");
+            await loadAndShowUserPicker();
+        }
         return;
     }
 
-    // 決まっているなら開始
-    startEventsSubscription();
+    // ★初回だけピッカーを出す（選択後に購読開始）
+    await loadAndShowUserPicker();
 });
 /* ===== [04] end ===== */
 
@@ -682,6 +694,7 @@ function renderUserList(names, keyword = "") {
         row.querySelector("button").addEventListener("click", () => {
             settings.name = n;
             saveSettings(settings);
+            markAskedThisSession();   // ★追加
             closeUserPicker();
             startEventsSubscription();
         });
@@ -722,6 +735,7 @@ async function registerUserName() {
 
         settings.name = name;
         saveSettings(settings);
+        markAskedThisSession();     // ★追加
         closeUserPicker();
         startEventsSubscription();
     } catch (e) {
@@ -915,6 +929,3 @@ function startEventsSubscription() {
     });
 }
 /* ===== [16] end ===== */
-
-最初にユーザー名選択画面その中に自分の名前がない場合ユーザー名登録できるようにしたい
-パスワード等はいらない
