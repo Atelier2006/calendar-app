@@ -81,6 +81,26 @@ window.clearAskedThisSession = function () {
     sessionStorage.removeItem("asked_user_picker");
 };
 
+function isValidVrcGroupUrl(url) {
+    if (!url) return true;
+    try {
+        const u = new URL(url);
+        if (u.protocol !== "https:") return false;
+
+        // vrc.group/xxxx.xxxx 形式
+        if (u.hostname === "vrc.group") return true;
+
+        // vrchat.com/home/group/... 形式（公式サイト）
+        if (u.hostname === "vrchat.com") {
+            // /home/group/grp_... や /home/group/grp_.../...
+            return u.pathname.startsWith("/home/group/");
+        }
+        return false;
+    } catch {
+        return false;
+    }
+}
+
 
 /* =========================================================
    [03] 設定（localStorage：名前/週開始/初期ビュー/タグプリセット）
@@ -171,6 +191,8 @@ const dayList = qs("dayList");
 const dayClose = qs("dayClose");
 const dayAdd = qs("dayAdd");
 
+const f_vrcgroup = qs("f_vrcgroup");
+
 // ===== ユーザー名選択モーダル DOM =====
 const userPickerModal = qs("userPickerModal");
 const u_list = qs("u_list");
@@ -244,6 +266,7 @@ function openDayModal(date) {
             const tags = (ev.extendedProps.tags || []).join(" / ");
             const who = ev.extendedProps.createdByName || "";
             const xurl = ev.extendedProps.x_url || "";
+            const vrcurl = ev.extendedProps.vrc_group_url || "";
             const isOccurrence = !!ev.extendedProps.parentId && !!ev.extendedProps.occurrenceIso;
 
             const item = document.createElement("div");
@@ -263,6 +286,7 @@ ${(ev.extendedProps.memo || "").trim()
 
 <div class="day-actions">
           ${xurl ? `<button class="btn" data-act="openx">Xを開く</button>` : ""}
+          ${vrcurl ? `<button class="btn" data-act="openvrc">VRCグループを開く</button>` : ""}
           <button class="btn primary" data-act="edit">編集</button>
           ${isOccurrence ? `<button class="btn danger" data-act="del-one">この回だけ削除</button>` : ""}
           ${isOccurrence ? `<button class="btn danger" data-act="del-series">シリーズ全体削除</button>` : ""}
@@ -276,6 +300,11 @@ ${(ev.extendedProps.memo || "").trim()
 
                 if (act === "openx" && xurl) {
                     window.open(xurl, "_blank");
+                    return;
+                }
+
+                if (act === "openvrc" && vrcurl) {
+                    window.open(vrcurl, "_blank");
                     return;
                 }
 
@@ -294,7 +323,8 @@ ${(ev.extendedProps.memo || "").trim()
                             createdByName: who,
                             rrule: ev.extendedProps.rrule || "",
                             parentId: ev.extendedProps.parentId || "",
-                            occurrenceIso: ev.extendedProps.occurrenceIso || ""
+                            occurrenceIso: ev.extendedProps.occurrenceIso || "",
+                            vrc_group_url: vrcurl,
                         }
                     });
                     return;
@@ -423,6 +453,8 @@ function openEventModal({ mode, docId, data, startDate }) {
     rebuildTagPalette();
     document.body.classList.add("modal-open");
     updateRepeatUI();
+
+    f_vrcgroup.value = data?.vrc_group_url || "";
 }
 
 function closeEventModal() {
@@ -536,7 +568,12 @@ btnSave.addEventListener("click", async () => {
         x_url: f_xurl.value || "",
         tags: parseTags(f_tags.value),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        vrc_group_url: f_vrcgroup.value.trim() || "",
     };
+
+    if (!isValidVrcGroupUrl(f_vrcgroup.value.trim())) {
+        return alert("VRCグループリンクは公式URLのみ対応です（vrc.group / vrchat.com/home/group/）");
+    }
 
     let rrule = "";
     if (f_repeatType.value === "weekly") {
@@ -561,6 +598,7 @@ btnSave.addEventListener("click", async () => {
             title: payload.title,
             memo: payload.memo,
             x_url: payload.x_url,
+            vrc_group_url: payload.vrc_group_url,   // ★追加
             tags: payload.tags
         };
         await db.collection("events").doc(activeParentId).update({
@@ -875,6 +913,7 @@ function expandRRuleToEvents(docId, d, rangeStart, rangeEnd) {
             extendedProps: {
                 memo: ov.memo ?? (d.memo || ""),
                 x_url: ov.x_url ?? (d.x_url || ""),
+                vrc_group_url: ov.vrc_group_url ?? (d.vrc_group_url || ""), // ★追加
                 tags: ov.tags ?? (Array.isArray(d.tags) ? d.tags : []),
                 createdByName: d.createdByName || "",
                 parentId: docId,
@@ -928,6 +967,7 @@ function startEventsSubscription() {
                         extendedProps: {
                             memo: d.memo || "",
                             x_url: d.x_url || "",
+                            vrc_group_url: d.vrc_group_url || "",   // ★追加
                             tags,
                             createdByName: d.createdByName || "",
                             rrule: d.rrule || ""
