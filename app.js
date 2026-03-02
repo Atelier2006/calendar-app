@@ -266,7 +266,7 @@ function openDayModal(date) {
             const tags = (ev.extendedProps.tags || []).join(" / ");
             const who = ev.extendedProps.createdByName || "";
             const xurl = ev.extendedProps.x_url || "";
-            const vrcurl = ev.extendedProps.vrc_group_url || "";
+            const vrcurl = (ev.extendedProps.vrc_group_url || "").trim();
             const isOccurrence = !!ev.extendedProps.parentId && !!ev.extendedProps.occurrenceIso;
 
             const item = document.createElement("div");
