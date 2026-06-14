@@ -786,6 +786,84 @@ body.modal-open {
 }
 
 /* =========================================================
+   週/日表示（タイムグリッド）
+   ========================================================= */
+.fc-timegrid-slot-label-cushion,
+.fc-timegrid-axis-cushion {
+    color: var(--text-secondary);
+}
+
+.fc-timegrid-slot {
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+.fc-timegrid-col.fc-day-today {
+    background: rgba(0, 234, 255, 0.06) !important;
+}
+
+.fc-timegrid-now-indicator-line {
+    border-color: var(--accent-pink);
+}
+
+.fc-timegrid-now-indicator-arrow {
+    border-color: var(--accent-pink);
+    color: var(--accent-pink);
+}
+
+.fc .fc-timegrid-event {
+    padding: 2px 4px;
+    background: linear-gradient(135deg, rgba(0, 234, 255, 0.28), rgba(167, 139, 250, 0.28));
+    border: 1px solid rgba(0, 234, 255, 0.4);
+    border-left: 4px solid var(--tag-color, var(--accent-cyan));
+    border-radius: var(--radius-sm);
+    box-shadow: 0 0 10px rgba(0, 234, 255, 0.18);
+}
+
+.fc .fc-timegrid-event .fc-event-main,
+.fc .fc-timegrid-event-harness .fc-event-main {
+    color: var(--text-primary);
+}
+
+.fc .fc-timegrid-event:hover {
+    box-shadow: var(--shadow-glow-purple);
+}
+
+/* =========================================================
+   リスト表示
+   ========================================================= */
+.fc .fc-list {
+    background: transparent;
+    border-color: var(--card-border);
+}
+
+.fc .fc-list-table th,
+.fc .fc-list-table td {
+    border-color: var(--card-border);
+}
+
+.fc .fc-list-day-cushion {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.fc .fc-list-event:hover td {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.fc .fc-list-event-title a,
+.fc .fc-list-event-time {
+    color: var(--text-primary);
+}
+
+.fc .fc-list-event-dot {
+    border-color: var(--tag-color, var(--accent-cyan)) !important;
+}
+
+.fc .fc-list-empty {
+    background: transparent;
+    color: var(--text-muted);
+}
+
+/* =========================================================
    Responsive
    ========================================================= */
 @media (max-width: 768px) {

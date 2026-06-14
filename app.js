@@ -1000,6 +1000,8 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
     height: "auto",
     contentHeight: "auto",
     expandRows: true,
+    // 週/日表示で予定が重なって表示されないよう、時間が重複する予定は横に並べる
+    slotEventOverlap: false,
 
     dateClick(info) { openDayModal(info.date); },
     eventClick(info) { openDayModal(info.event.start); },
@@ -1017,17 +1019,37 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
     eventContent(arg) {
         const tags = arg.event.extendedProps.tags || [];
         const who = arg.event.extendedProps.createdByName || "";
+        // 週/日表示はマスが狭いので、タイトルのみのコンパクト表示にする
+        const compact = arg.view.type.startsWith("timeGrid");
 
         const wrap = document.createElement("div");
         wrap.style.fontSize = "12px";
         wrap.style.lineHeight = "1.25";
+        wrap.style.overflow = "hidden";
 
         const pColor = primaryTagColor(tags);
         if (pColor) wrap.style.setProperty("--tag-color", pColor);
 
         const t = document.createElement("div");
         t.innerHTML = `<b>${escapeHtml(arg.event.title)}</b>`;
+        if (compact) {
+            t.style.whiteSpace = "nowrap";
+            t.style.overflow = "hidden";
+            t.style.textOverflow = "ellipsis";
+        }
         wrap.appendChild(t);
+
+        if (compact) {
+            const timeText = arg.timeText;
+            if (timeText) {
+                const time = document.createElement("div");
+                time.className = "muted";
+                time.style.fontSize = "11px";
+                time.textContent = timeText;
+                wrap.appendChild(time);
+            }
+            return { domNodes: [wrap] };
+        }
 
         if (tags.length) {
             const tagRow = document.createElement("div");
