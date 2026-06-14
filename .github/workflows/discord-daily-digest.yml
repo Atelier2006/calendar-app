@@ -1,0 +1,27 @@
+name: Discord Daily Digest
+
+on:
+  schedule:
+    # 毎日 7:00 JST (= 前日 22:00 UTC)
+    - cron: "0 22 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  send-digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        working-directory: scripts
+        run: npm install
+
+      - name: Send digest to Discord
+        working-directory: scripts
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: node discord-digest.mjs

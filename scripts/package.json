@@ -1,0 +1,8 @@
+{
+    "name": "calendar-discord-digest",
+    "private": true,
+    "type": "module",
+    "dependencies": {
+        "rrule": "2.7.2"
+    }
+}
