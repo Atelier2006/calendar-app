@@ -88,6 +88,24 @@ function primaryTagColor(tags) {
     if (t.length === 0) return null;
     return tagColor(t[0]);
 }
+
+// 初期読み込みオーバーレイを隠す（ユーザー選択待ち or 初回データ受信時に呼ぶ）
+function hideLoadingOverlay() {
+    const el = document.getElementById("loadingOverlay");
+    if (el) el.classList.add("hidden");
+}
+
+// 読み込み中オーバーレイにエラーメッセージを表示する（接続失敗時）
+function showLoadingError(message) {
+    const el = document.getElementById("loadingOverlay");
+    if (!el) return;
+    el.classList.remove("hidden");
+    el.innerHTML = `
+        <div class="loading-text">${escapeHtml(message)}</div>
+        <button id="loadingRetry" class="btn primary">再読み込み</button>
+    `;
+    document.getElementById("loadingRetry")?.addEventListener("click", () => location.reload());
+}
 /* ===== [02] end ===== */
 
 // ★タブを閉じるまで保持するフラグ
@@ -166,11 +184,23 @@ function markAskedThisSession() {
 let currentUser = null;
 
 window.addEventListener("DOMContentLoaded", () => {
+    // 通信が遅い/失敗した場合に、ローディング画面が固まったままにならないようにする
+    const authTimeout = setTimeout(() => {
+        showLoadingError("読み込みに時間がかかっています。通信環境を確認してください。");
+    }, 15000);
+
     firebase.auth().onAuthStateChanged(async (user) => {
         if (!user) {
-            await firebase.auth().signInAnonymously();
+            try {
+                await firebase.auth().signInAnonymously();
+            } catch (e) {
+                console.error("匿名ログインに失敗:", e);
+                clearTimeout(authTimeout);
+                showLoadingError("ログインに失敗しました。通信環境を確認してください。");
+            }
             return;
         }
+        clearTimeout(authTimeout);
         currentUser = user;
 
         // ★既に選択済みなら購読開始（選択画面は出さない）
@@ -890,6 +920,7 @@ function renderUserList(names, keyword = "") {
 }
 
 async function loadAndShowUserPicker() {
+    hideLoadingOverlay();
     openUserPicker();
     u_list.innerHTML = `<div class="muted">読み込み中...</div>`;
 
@@ -1089,11 +1120,10 @@ function renderEventsToCalendar() {
     calendar.removeAllEvents();
     globalTagSet = new Set();
 
+    // 表示範囲のみを展開対象にする（広い範囲を毎回展開するとナビゲーション時のラグの原因になる）
     const view = calendar.view;
     const rangeStart = new Date(view.activeStart);
-    rangeStart.setMonth(rangeStart.getMonth() - 12);
     const rangeEnd = new Date(view.activeEnd);
-    rangeEnd.setMonth(rangeEnd.getMonth() + 12);
 
     for (const { id: docId, data: d } of latestEventDocs) {
         // タグ集計
@@ -1143,6 +1173,10 @@ function startEventsSubscription() {
             latestEventDocs.push({ id: doc.id, data: doc.data() });
         });
         renderEventsToCalendar();
+        hideLoadingOverlay();
+    }, (err) => {
+        console.error("予定の取得に失敗:", err);
+        showLoadingError("予定の読み込みに失敗しました。通信環境を確認してください。");
     });
 
     // 通知が有効なら、定期チェックを開始

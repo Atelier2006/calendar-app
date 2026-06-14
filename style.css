@@ -698,9 +698,11 @@ body.modal-open {
     flex: 1 1 auto;
 }
 
-/* スクロール用ラッパーを自動高さに（下が切れないようにする） */
-.fc .fc-scroller-harness,
-.fc .fc-scroller {
+/* スクロール用ラッパーを自動高さに（下が切れないようにする）
+   ※ 月表示(daygrid)のみに限定する。週/日/リスト表示まで対象にすると
+      時間軸グリッドの内部スクロールが無効化され、表示が大きく崩れる。 */
+.fc-daygrid .fc-scroller-harness,
+.fc-daygrid .fc-scroller {
     height: auto !important;
     overflow: visible !important;
 }
