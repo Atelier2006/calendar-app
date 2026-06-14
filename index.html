@@ -60,6 +60,18 @@
         <button id="openSettings" class="btn">⚙ 設定</button>
     </header>
 
+    <!-- タグフィルター -->
+    <div id="tagFilter" class="tag-palette filter-panel"></div>
+
+    <!-- 近日の予定パネル -->
+    <div id="upcomingPanel" class="upcoming-panel">
+        <div class="upcoming-header">
+            <h2 class="upcoming-title">近日の予定</h2>
+            <button id="upcomingToggle" class="btn small">隠す</button>
+        </div>
+        <div id="upcomingList" class="upcoming-list"></div>
+    </div>
+
     <div id="calendar"></div>
 
     <!-- 日別予定一覧モーダル -->
@@ -95,6 +107,14 @@
                 </label>
             </div>
 
+            <div class="duration-quick" id="durationQuick">
+                <span class="muted">所要時間:</span>
+                <button type="button" class="btn small" data-min="30">30分</button>
+                <button type="button" class="btn small" data-min="60">1時間</button>
+                <button type="button" class="btn small" data-min="120">2時間</button>
+                <button type="button" class="btn small" data-min="180">3時間</button>
+            </div>
+
             <label>
                 繰り返し
                 <select id="f_repeatType">
@@ -114,6 +134,10 @@
                     <label><input type="checkbox" class="nth" value="4">4</label>
                     <label><input type="checkbox" class="nth" value="-1">最終</label>
                 </div>
+            </div>
+
+            <div id="repeatNote" class="muted" style="display:none; margin-top:4px;">
+                ※この回だけの編集では、繰り返し設定はここでは変更できません（シリーズ全体を編集するには一旦削除して作り直してください）
             </div>
 
 
@@ -179,6 +203,19 @@
 
             <label>タグ候補（カンマ区切り・任意）
                 <input id="s_tagPresets" type="text" placeholder="ライブ,告知,作業,集会" />
+            </label>
+
+            <label class="row" style="align-items:center;">
+                <input id="s_notifyEnabled" type="checkbox" style="width:auto; margin:0 8px 0 0;">
+                <span>イベント開始前に通知する</span>
+            </label>
+
+            <label>通知タイミング
+                <select id="s_notifyMinutes">
+                    <option value="10">10分前</option>
+                    <option value="30">30分前</option>
+                    <option value="60">60分前</option>
+                </select>
             </label>
 
             <div class="actions">
